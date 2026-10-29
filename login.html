@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso - Sistema de Nutrición y Gestión Hospitalaria</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb); 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Paneles laterales */
+        .side-decoration {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 28%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            color: #0d47a1;
+            z-index: 1;
+        }
+
+        .side-left {
+            left: 0;
+            background: linear-gradient(to right, rgba(255,255,255,0.7), rgba(255,255,255,0));
+            border-right: 2px dashed rgba(13, 71, 161, 0.15);
+        }
+
+        .side-right {
+            right: 0;
+            background: linear-gradient(to left, rgba(255,255,255,0.7), rgba(255,255,255,0));
+            border-left: 2px dashed rgba(13, 71, 161, 0.15);
+        }
+
+        /* Estilo para la imagen real de la nutricionista */
+        .side-img {
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid #ffffff;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+            margin-bottom: 15px;
+        }
+
+        .side-decoration .icon-badge {
+            font-size: 65px;
+            margin-bottom: 15px;
+            background: white;
+            width: 110px;
+            height: 110px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        }
+
+        .side-decoration h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #1565c0;
+        }
+
+        .side-decoration p {
+            margin: 0;
+            font-size: 13px;
+            color: #546e7a;
+            max-width: 230px;
+            line-height: 1.4;
+        }
+
+        /* Tarjeta Central de Login */
+        .container { 
+            width: 400px; 
+            background: #ffffff; 
+            padding: 35px 30px; 
+            border-radius: 14px; 
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12); 
+            border-top: 5px solid #1976d2; 
+            z-index: 10;
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .logo-area h1 {
+            font-size: 22px;
+            color: #0d47a1;
+            margin: 8px 0 4px 0;
+        }
+
+        .logo-area p {
+            font-size: 12px;
+            color: #78909c;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 700;
+        }
+
+        .form-group { 
+            margin-bottom: 18px; 
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 6px; 
+            font-weight: 600; 
+            color: #37474f; 
+            font-size: 13px;
+        }
+
+        input { 
+            width: 100%; 
+            padding: 11px 14px; 
+            box-sizing: border-box; 
+            border: 1px solid #cfd8dc; 
+            border-radius: 6px; 
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            border-color: #1976d2;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+        }
+
+        button { 
+            background-color: #1976d2; 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            font-weight: bold; 
+            width: 100%; 
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+
+        button:hover { 
+            background-color: #115293; 
+        }
+
+        .link-text { 
+            text-align: center; 
+            margin-top: 20px; 
+            font-size: 13px; 
+            color: #78909c;
+        }
+
+        .link-text a { 
+            color: #1976d2; 
+            text-decoration: none; 
+            font-weight: 600; 
+        }
+
+        .link-text a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 900px) {
+            .side-decoration {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Panel Lateral Izquierdo: Imagen real de Nutricionista -->
+    <div class="side-decoration side-left">
+        <img src="https://d2qbblo43j0vwz.cloudfront.net/wp-content/uploads/2025/06/que-hace-un-nutricionista.webp" alt="Nutricionista" class="side-img">
+        <h3>Atención Profesional</h3>
+        <p>Control clínico especializado y seguimiento nutricional adaptado para cada paciente internado.</p>
+    </div>
+
+    <!-- Tarjeta Central de Inicio de Sesión -->
+    <div class="container">
+        <div class="logo-area">
+            <span style="font-size: 28px;">🏥</span>
+            <h1>Gestión Hospitalaria</h1>
+            <p>Nutrición y Clínica Médica</p>
+        </div>
+
+        <div class="form-group">
+            <label>DNI del Personal (Sin puntos)</label>
+            <input type="text" id="login-dni" placeholder="Ej: 38275390">
+        </div>
+        
+        <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" id="login-contrasena" placeholder="••••••••">
+        </div>
+
+        <button onclick="iniciarSesion()">Iniciar Sesión</button>
+
+        <div class="link-text">
+            ¿No tenés usuario? <a href="registro.html">Registrate acá</a>
+        </div>
+    </div>
+
+    <!-- Panel Lateral Derecho: Ilustración de Alimentación -->
+    <div class="side-decoration side-right">
+        <div class="icon-badge">🥗</div>
+        <h3>Alimentación Saludable</h3>
+        <p>Gestión eficiente de dietas clínicas, almacén de insumos y control de consumo en cocina.</p>
+    </div>
+
+<script>
+    async function iniciarSesion() {
+        const dni = document.getElementById('login-dni').value;
+        const contrasena = document.getElementById('login-contrasena').value;
+
+        if (!dni || !contrasena) {
+            alert('Por favor, completa todos los campos.');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dni, contrasena })
+            });
+            const data = await res.json();
+            
+            if (res.ok && data.login) {
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('usuarioNombre', data.usuario.nombre);
+                localStorage.setItem('usuarioRol', data.usuario.rol);
+                window.location.href = 'index.html';
+            } else {
+                alert(data.error || 'DNI o contraseña incorrectos.');
+            }
+        } catch (err) {
+            alert('Error de conexión con el servidor.');
+        }
+    }
+</script>
+
+</body>
+</html>

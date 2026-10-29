@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Personal - Hospital</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
+        .container { width: 400px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #004080; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        input, select { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
+        button { background-color: #00a8cc; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
+        button:hover { background-color: #008fa1; }
+        .link-text { text-align: center; margin-top: 15px; font-size: 14px; }
+        .link-text a { color: #00a8cc; text-decoration: none; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Registrar Personal</h2>
+    <div class="form-group">
+        <label>DNI (Sin puntos)</label>
+        <input type="text" id="reg-dni" placeholder="Ej: 12345678">
+    </div>
+    <div class="form-group">
+        <label>Nombre Completo</label>
+        <input type="text" id="reg-nombre" placeholder="Nombre y Apellido">
+    </div>
+    <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="reg-contrasena" placeholder="••••••••">
+    </div>
+    <div class="form-group">
+        <label>Rol en el Turno</label>
+        <select id="reg-rol">
+            <option value="Enfermera">Enfermera</option>
+            <option value="Nutricionista">Nutricionista</option>
+            <option value="Cocinera">Cocinera</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Clave de autorización del hospital</label>
+        <input type="password" id="reg-clave" autocomplete="off">
+    </div>
+    
+    <button onclick="registrarPersonal()">Registrar Personal</button>
+    <div class="link-text">
+        ¿Ya tenés cuenta? <a href="login.html">Iniciá sesión</a>
+    </div>
+</div>
+
+<script>
+    async function registrarPersonal() {
+        const data = {
+            dni: document.getElementById('reg-dni').value,
+            nombre: document.getElementById('reg-nombre').value,
+            contrasena: document.getElementById('reg-contrasena').value,
+            rol: document.getElementById('reg-rol').value,
+            claveRegistro: document.getElementById('reg-clave').value
+        };
+
+        try {
+            const res = await fetch('/api/auth/registrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert('¡Personal registrado con éxito! Redirigiendo al login...');
+                window.location.href = 'login.html';
+            } else {
+                alert(result.error || 'Error al registrar.');
+            }
+        } catch (err) {
+            alert('Error de conexión con el servidor.');
+        }
+    }
+</script>
+
+</body>
+</html>

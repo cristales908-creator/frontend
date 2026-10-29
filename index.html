@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Hospitalario - Panel Principal</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #e9ecef; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        h1, h2, h3 { color: #004080; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #0056b3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #003d82; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #0056b3; color: white; }
+        .seccion-contenido { display: none; }
+        .active-section { display: block; }
+        nav { margin-bottom: 25px; display: flex; gap: 10px; border-bottom: 2px solid #dee2e6; padding-bottom: 12px; }
+        nav button { background-color: #6c757d; }
+        nav button.active-nav { background-color: #0056b3; }
+        .card { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e2e6ea; }
+        .solo-admin { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 id="titulo-bienvenida">🏥 Panel de Gestión Hospitalaria</h1>
+    
+    <nav>
+        <button onclick="cambiarPestana('pacientes')" id="btn-pacientes" class="active-nav">Pacientes</button>
+        <button onclick="cambiarPestana('historial')" id="btn-historial">Historial de Altas</button>
+        <button onclick="cambiarPestana('almacen')" id="btn-almacen">Almacén</button>
+        <button onclick="cambiarPestana('menus')" id="btn-menus">Menús de Cocina</button>
+        <button onclick="cerrarSesion()" style="background-color: #dc3545; margin-left: auto;">Cerrar Sesión</button>
+    </nav>
+
+    <!-- SECCIÓN: PACIENTES -->
+    <div id="seccion-pacientes" class="seccion-contenido active-section">
+        <h2>Gestión de Pacientes Internados</h2>
+        
+        <!-- Formulario oculto para la Cocinera -->
+        <div class="card" id="card-nuevo-paciente">
+            <h3>Registrar Nuevo Paciente</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group"><label>DNI:</label><input type="text" id="pac-dni"></div>
+                <div class="form-group"><label>Nombre:</label><input type="text" id="pac-nombre"></div>
+                <div class="form-group"><label>Apellido:</label><input type="text" id="pac-apellido"></div>
+                <div class="form-group"><label>Patología:</label><select id="pac-patologia"></select></div>
+                <div class="form-group"><label>Dieta indicada por Nutrición:</label><select id="pac-dieta"></select></div>
+                <div class="form-group">
+                    <label>Acompañante:</label>
+                    <select id="pac-acompanante"><option value="false">No</option><option value="true">Sí</option></select>
+                </div>
+            </div>
+            <button onclick="registrarPaciente()">Guardar Paciente</button>
+        </div>
+
+        <h3>Lista de Pacientes y Acompañantes</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>DNI</th>
+                    <th>Nombre y Apellido</th>
+                    <th>Patología</th>
+                    <th>Dieta</th>
+                    <th>Acompañante</th>
+                    <th>Estado</th>
+                    <th id="th-accion">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-pacientes"></tbody>
+        </table>
+    </div>
+
+    <!-- SECCIÓN: HISTORIAL DE ALTAS -->
+    <div id="seccion-historial" class="seccion-contenido">
+        <h2>Historial de Altas Médicas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Paciente</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                    <th>Responsable</th>
+                    <th>Rol</th>
+                    <th>Fecha y Hora</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-historial"></tbody>
+        </table>
+    </div>
+
+    <!-- SECCIÓN: ALMACÉN -->
+    <div id="seccion-almacen" class="seccion-contenido">
+        <h2>Control de Almacén de Alimentos</h2>
+        
+        <!-- Formulario para agregar stock (Oculto para Cocinera) -->
+        <div class="card" id="card-nuevo-alimento">
+            <h3>Registrar Alimento en Stock</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group"><label>Nombre del Alimento:</label><input type="text" id="alim-nombre"></div>
+                <div class="form-group"><label>Cantidad Actual:</label><input type="number" id="alim-cantidad" step="0.1"></div>
+                <div class="form-group"><label>Unidad de Medida:</label><input type="text" id="alim-unidad" placeholder="kg, litros..."></div>
+                <div class="form-group"><label>Fecha de Vencimiento:</label><input type="date" id="alim-vencimiento"></div>
+            </div>
+            <button onclick="registrarAlimento()">Agregar al Almacén</button>
+        </div>
+
+        <h3>Stock Disponible</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Alimento</th>
+                    <th>Cantidad Actual</th>
+                    <th>Unidad</th>
+                    <th>Vencimiento</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-alimentos"></tbody>
+        </table>
+    </div>
+
+    <!-- SECCIÓN: PLANIFICACIÓN DE MENÚS -->
+    <div id="seccion-menus" class="seccion-contenido">
+        <h2>Planificación de Menús</h2>
+
+        <div class="card" id="card-nuevo-menu">
+            <h3>Crear opción de menú</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group"><label>Nombre del menú:</label><input type="text" id="menu-nombre" required></div>
+                <div class="form-group"><label>Dieta:</label><select id="menu-dieta" required></select></div>
+                <div class="form-group" style="grid-column: 1 / -1;"><label>Composición validada por Nutrición:</label><textarea id="menu-descripcion" rows="3" required></textarea></div>
+            </div>
+            <button onclick="crearMenu()">Guardar menú</button>
+        </div>
+
+        <div class="card" id="card-asignaciones-menu">
+            <h3>Asignar menú por paciente</h3>
+            <div class="form-group" style="max-width: 240px;">
+                <label>Fecha de servicio:</label>
+                <input type="date" id="menus-fecha" onchange="cargarMenusDia()">
+            </div>
+            <p id="nota-catalogo-menus"></p>
+            <table>
+                <thead><tr><th>Paciente</th><th>Patología</th><th>Dieta</th><th>Acompañante</th><th>Menú</th><th>Comida</th><th>Acción</th></tr></thead>
+                <tbody id="tabla-asignaciones-menu"></tbody>
+            </table>
+        </div>
+
+        <h3>Raciones para cocina</h3>
+        <table>
+            <thead><tr><th>Comida</th><th>Dieta</th><th>Menú</th><th>Composición</th><th>Pacientes</th><th>Acompañantes</th><th>Total a preparar</th></tr></thead>
+            <tbody id="tabla-resumen-menus"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    if (!localStorage.getItem('authToken') || !localStorage.getItem('usuarioRol')) {
+    window.location.href = 'login.html';
+}
+    let rolUsuario = localStorage.getItem('usuarioRol') || 'Invitado';
+    let nombreUsuario = localStorage.getItem('usuarioNombre') || 'Personal';
+    let catalogoNutricional = { patologias: [], dietas: [], comidas: [] };
+
+    async function apiFetch(url, options = {}) {
+        const headers = new Headers(options.headers || {});
+        headers.set('Authorization', `Bearer ${localStorage.getItem('authToken')}`);
+        if (options.body && !headers.has('Content-Type')) {
+            headers.set('Content-Type', 'application/json');
+        }
+
+        const response = await fetch(url, { ...options, headers });
+        if (response.status === 401) {
+            localStorage.clear();
+            window.location.replace('login.html');
+        }
+        return response;
+    }
+
+    function escapeHtml(value) {
+        const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        return String(value ?? '').replace(/[&<>"']/g, character => entities[character]);
+    }
+
+    function fechaLocalActual() {
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+    }
+
+    function llenarSelector(id, opciones, placeholder) {
+        const selector = document.getElementById(id);
+        selector.innerHTML = `<option value="">${escapeHtml(placeholder)}</option>`
+            + opciones.map(opcion => `<option value="${escapeHtml(opcion)}">${escapeHtml(opcion)}</option>`).join('');
+    }
+
+    async function cargarCatalogoNutricional() {
+        try {
+            const response = await apiFetch('/api/menus/opciones');
+            catalogoNutricional = await response.json();
+            llenarSelector('pac-patologia', catalogoNutricional.patologias, 'Seleccionar patología');
+            llenarSelector('pac-dieta', catalogoNutricional.dietas, 'Seleccionar dieta');
+            llenarSelector('menu-dieta', catalogoNutricional.dietas, 'Seleccionar dieta');
+            document.getElementById('nota-catalogo-menus').innerText = catalogoNutricional.nota;
+        } catch (error) {
+            console.error('Error cargando catálogo de Nutrición:', error);
+        }
+    }
+
+    window.onload = function() {
+        document.getElementById('titulo-bienvenida').innerText = `🏥 Panel de ${nombreUsuario} (${rolUsuario})`;
+        document.getElementById('menus-fecha').value = fechaLocalActual();
+
+        // Restringir vistas si el rol es Cocinera
+        if (rolUsuario === 'Cocinera' || rolUsuario === 'cocinera') {
+            document.getElementById('card-nuevo-paciente').style.display = 'none';
+            document.getElementById('card-nuevo-alimento').style.display = 'none';
+            document.getElementById('card-asignaciones-menu').style.display = 'none';
+        }
+        if (rolUsuario !== 'Nutricionista') document.getElementById('card-nuevo-menu').style.display = 'none';
+
+        cargarCatalogoNutricional();
+        cargarPacientes();
+        cargarHistorial();
+        cargarAlimentos();
+    };
+
+    function cambiarPestana(pestana) {
+        document.getElementById('seccion-pacientes').classList.remove('active-section');
+        document.getElementById('seccion-historial').classList.remove('active-section');
+        document.getElementById('seccion-almacen').classList.remove('active-section');
+        document.getElementById('seccion-menus').classList.remove('active-section');
+        document.getElementById('btn-pacientes').classList.remove('active-nav');
+        document.getElementById('btn-historial').classList.remove('active-nav');
+        document.getElementById('btn-almacen').classList.remove('active-nav');
+        document.getElementById('btn-menus').classList.remove('active-nav');
+
+        if (pestana === 'pacientes') {
+            document.getElementById('seccion-pacientes').classList.add('active-section');
+            document.getElementById('btn-pacientes').classList.add('active-nav');
+            cargarPacientes();
+        } else if (pestana === 'historial') {
+            document.getElementById('seccion-historial').classList.add('active-section');
+            document.getElementById('btn-historial').classList.add('active-nav');
+            cargarHistorial();
+        } else if (pestana === 'almacen') {
+            document.getElementById('seccion-almacen').classList.add('active-section');
+            document.getElementById('btn-almacen').classList.add('active-nav');
+            cargarAlimentos();
+        } else if (pestana === 'menus') {
+            document.getElementById('seccion-menus').classList.add('active-section');
+            document.getElementById('btn-menus').classList.add('active-nav');
+            cargarMenusDia();
+        }
+    }
+
+    async function cargarPacientes() {
+        try {
+            const res = await apiFetch('/api/pacientes');
+            const pacientes = await res.json();
+            const tbody = document.getElementById('tabla-pacientes');
+            tbody.innerHTML = '';
+            pacientes.forEach(p => {
+                let botonAccion = '';
+                if (rolUsuario !== 'Cocinera' && rolUsuario !== 'cocinera') {
+                    botonAccion = p.estado_internacion === 'Alta'
+                        ? `<button onclick="reinternarPaciente(${p.id})" style="padding:6px; background:#0056b3;">Reinternar</button>`
+                        : `<button onclick="darAlta(${p.id})" style="padding:6px; background:#28a745;">Dar Alta</button>`;
+                } else {
+                    botonAccion = p.estado_internacion === 'Alta' ? 'Dado de Alta' : 'Internado activo';
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${escapeHtml(p.dni)}</td>
+                        <td>${escapeHtml(p.nombre)} ${escapeHtml(p.apellido)}</td>
+                        <td>${escapeHtml(p.patologia || '-')}</td>
+                        <td>${escapeHtml(p.dieta_asignada || '-')}</td>
+                        <td>${p.tiene_acompanante ? 'Sí (Acompañado)' : 'No'}</td>
+                        <td><strong>${escapeHtml(p.estado_internacion)}</strong></td>
+                        <td>${botonAccion}</td>
+                    </tr>
+                `;
+            });
+        } catch (err) { console.error('Error cargando pacientes:', err); }
+    }
+
+    async function registrarPaciente() {
+        if (rolUsuario === 'Cocinera' || rolUsuario === 'cocinera') {
+            alert('No tienes permisos para registrar pacientes.');
+            return;
+        }
+
+        const data = {
+            dni: document.getElementById('pac-dni').value,
+            nombre: document.getElementById('pac-nombre').value,
+            apellido: document.getElementById('pac-apellido').value,
+            patologia: document.getElementById('pac-patologia').value,
+            dieta_asignada: document.getElementById('pac-dieta').value,
+            estado_internacion: 'Internado',
+            tiene_acompanante: document.getElementById('pac-acompanante').value === 'true'
+        };
+
+        const res = await apiFetch('/api/pacientes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            alert('Paciente registrado exitosamente.');
+            cargarPacientes();
+        } else {
+            alert('Error al registrar paciente.');
+        }
+    }
+
+    async function darAlta(id) {
+        const res = await apiFetch(`/api/pacientes/${id}/alta`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+        if (res.ok) {
+            alert('Alta registrada correctamente.');
+            cargarPacientes();
+            cargarHistorial();
+        }
+    }
+
+    async function reinternarPaciente(id) {
+        const res = await apiFetch(`/api/pacientes/${id}/reingreso`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+        if (res.ok) {
+            alert('Reingreso registrado correctamente.');
+            cargarPacientes();
+            cargarHistorial();
+        } else {
+            const result = await res.json().catch(() => ({}));
+            alert(result.error || 'No se pudo registrar el reingreso.');
+        }
+    }
+
+    async function cargarHistorial() {
+        try {
+            const res = await apiFetch('/api/historial-pacientes');
+            const historial = await res.json();
+            const tbody = document.getElementById('tabla-historial');
+            tbody.innerHTML = '';
+            historial.forEach(h => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${escapeHtml(h.paciente_nombre)}</td>
+                        <td>${escapeHtml(h.estado)}</td>
+                        <td>${escapeHtml(h.accion)}</td>
+                        <td>${escapeHtml(h.usuario_nombre)}</td>
+                        <td>${escapeHtml(h.usuario_rol)}</td>
+                        <td>${escapeHtml(new Date(h.fecha_alta).toLocaleString())}</td>
+                    </tr>
+                `;
+            });
+        } catch (err) { console.error('Error cargando historial:', err); }
+    }
+
+    async function cargarAlimentos() {
+        try {
+            const res = await apiFetch('/api/alimentos');
+            const alimentos = await res.json();
+            const tbody = document.getElementById('tabla-alimentos');
+            tbody.innerHTML = '';
+            alimentos.forEach(a => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${escapeHtml(a.nombre)}</td>
+                        <td>${escapeHtml(a.cantidad_actual)}</td>
+                        <td>${escapeHtml(a.unidad_medida)}</td>
+                        <td>${escapeHtml(a.fecha_vencimiento || '-')}</td>
+                    </tr>
+                `;
+            });
+        } catch (err) { console.error('Error cargando alimentos:', err); }
+    }
+
+    async function crearMenu() {
+        const data = {
+            nombre: document.getElementById('menu-nombre').value,
+            dieta: document.getElementById('menu-dieta').value,
+            descripcion: document.getElementById('menu-descripcion').value
+        };
+        const response = await apiFetch('/api/menus', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            alert(result.error || 'No se pudo crear el menú.');
+            return;
+        }
+
+        document.getElementById('menu-nombre').value = '';
+        document.getElementById('menu-dieta').value = '';
+        document.getElementById('menu-descripcion').value = '';
+        alert('Menú guardado. Ya puede asignarse a pacientes con esa dieta.');
+        cargarMenusDia();
+    }
+
+    async function cargarMenusDia() {
+        const fecha = document.getElementById('menus-fecha').value;
+        if (!fecha) return;
+
+        try {
+            const [pacientesResponse, menusResponse, asignacionesResponse, resumenResponse] = await Promise.all([
+                apiFetch('/api/pacientes'),
+                apiFetch('/api/menus'),
+                apiFetch(`/api/menus/asignaciones?fecha=${encodeURIComponent(fecha)}`),
+                apiFetch(`/api/menus/resumen?fecha=${encodeURIComponent(fecha)}`)
+            ]);
+            const [pacientes, menus, asignaciones, resumen] = await Promise.all([
+                pacientesResponse.json(), menusResponse.json(), asignacionesResponse.json(), resumenResponse.json()
+            ]);
+            const activas = pacientes.filter(paciente => paciente.estado_internacion !== 'Alta');
+            const asignacionPorPacienteComida = new Map(
+                asignaciones.map(asignacion => [`${asignacion.pacienteId}-${asignacion.comida}`, asignacion])
+            );
+
+            document.getElementById('tabla-asignaciones-menu').innerHTML = activas.map(paciente => {
+                const menusPaciente = menus.filter(menu => menu.dieta === paciente.dieta_asignada);
+                const filasComida = catalogoNutricional.comidas.map(comida => {
+                    const actual = asignacionPorPacienteComida.get(`${paciente.id}-${comida}`);
+                    const opciones = menusPaciente.map(menu =>
+                        `<option value="${menu.id}" ${actual?.menuId === menu.id ? 'selected' : ''}>${escapeHtml(menu.nombre)}</option>`
+                    ).join('');
+                    return `<tr>
+                        <td>${escapeHtml(paciente.nombre)} ${escapeHtml(paciente.apellido)}</td>
+                        <td>${escapeHtml(paciente.patologia)}</td>
+                        <td>${escapeHtml(paciente.dieta_asignada)}</td>
+                        <td>${paciente.tiene_acompanante ? '1 adicional' : 'No'}</td>
+                        <td><select id="menu-${paciente.id}-${comida}"><option value="">Seleccionar menú</option>${opciones}</select></td>
+                        <td>${escapeHtml(comida)}</td>
+                        <td><button onclick="asignarMenu(${paciente.id}, '${escapeHtml(comida)}')">Guardar</button></td>
+                    </tr>`;
+                }).join('');
+                return filasComida;
+            }).join('') || '<tr><td colspan="7">No hay pacientes internados para planificar.</td></tr>';
+
+            document.getElementById('tabla-resumen-menus').innerHTML = resumen.map(item => `
+                <tr>
+                    <td>${escapeHtml(item.comida)}</td>
+                    <td>${escapeHtml(item.dieta)}</td>
+                    <td>${escapeHtml(item.nombre)}</td>
+                    <td>${escapeHtml(item.descripcion)}</td>
+                    <td>${escapeHtml(item.porciones_paciente)}</td>
+                    <td>${escapeHtml(item.porciones_acompanante)}</td>
+                    <td><strong>${escapeHtml(item.total_porciones)}</strong></td>
+                </tr>
+            `).join('') || '<tr><td colspan="7">Todavía no hay menús asignados para esta fecha.</td></tr>';
+        } catch (error) {
+            console.error('Error cargando planificación de menús:', error);
+        }
+    }
+
+    async function asignarMenu(pacienteId, comida) {
+        const menuId = document.getElementById(`menu-${pacienteId}-${comida}`).value;
+        const fecha = document.getElementById('menus-fecha').value;
+        if (!menuId) {
+            alert('Seleccione un menú que corresponda a la dieta del paciente.');
+            return;
+        }
+
+        const response = await apiFetch('/api/menus/asignaciones', {
+            method: 'POST',
+            body: JSON.stringify({ pacienteId, menuId, fecha, comida })
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            alert(result.error || 'No se pudo asignar el menú.');
+            return;
+        }
+
+        await cargarMenusDia();
+    }
+
+    async function registrarAlimento() {
+        if (rolUsuario === 'Cocinera' || rolUsuario === 'cocinera') {
+            alert('Solo la Nutricionista o Enfermera pueden agregar nuevo stock.');
+            return;
+        }
+
+        const data = {
+            nombre: document.getElementById('alim-nombre').value,
+            cantidad_actual: parseFloat(document.getElementById('alim-cantidad').value),
+            unidad_medida: document.getElementById('alim-unidad').value,
+            fecha_ingreso: new Date().toISOString().split('T')[0],
+            fecha_vencimiento: document.getElementById('alim-vencimiento').value,
+        };
+
+        const res = await apiFetch('/api/alimentos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            alert('Alimento registrado en el stock.');
+            cargarAlimentos();
+        } else {
+            alert('Error al registrar alimento.');
+        }
+    }
+
+    function cerrarSesion() {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    }
+</script>
+
+</body>
+</html>
