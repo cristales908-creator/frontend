@@ -122,6 +122,14 @@
             </thead>
             <tbody id="tabla-alimentos"></tbody>
         </table>
+
+        <div id="card-historial-almacen">
+            <h3>Historial de ingresos</h3>
+            <table>
+                <thead><tr><th>Fecha</th><th>Alimento</th><th>Cantidad</th><th>Acción</th><th>Responsable</th><th>Rol</th></tr></thead>
+                <tbody id="tabla-historial-almacen"></tbody>
+            </table>
+        </div>
     </div>
 
     <!-- SECCIÓN: PLANIFICACIÓN DE MENÚS -->
@@ -200,6 +208,11 @@
             + opciones.map(opcion => `<option value="${escapeHtml(opcion)}">${escapeHtml(opcion)}</option>`).join('');
     }
 
+    function normalizarDieta(value) {
+        const normalized = String(value ?? '').trim().replace(/^dieta\s+/i, '').toLocaleLowerCase('es');
+        return catalogoNutricional.dietas.find(dieta => dieta.toLocaleLowerCase('es') === normalized) || null;
+    }
+
     async function cargarCatalogoNutricional() {
         try {
             const response = await apiFetch('/api/menus/opciones');
@@ -222,6 +235,7 @@
             document.getElementById('card-nuevo-paciente').style.display = 'none';
             document.getElementById('card-nuevo-alimento').style.display = 'none';
             document.getElementById('card-asignaciones-menu').style.display = 'none';
+            document.getElementById('card-historial-almacen').style.display = 'none';
         }
         if (rolUsuario !== 'Nutricionista') document.getElementById('card-nuevo-menu').style.display = 'none';
 
@@ -253,6 +267,7 @@
             document.getElementById('seccion-almacen').classList.add('active-section');
             document.getElementById('btn-almacen').classList.add('active-nav');
             cargarAlimentos();
+            if (rolUsuario !== 'Cocinera' && rolUsuario !== 'cocinera') cargarHistorialAlmacen();
         } else if (pestana === 'menus') {
             document.getElementById('seccion-menus').classList.add('active-section');
             document.getElementById('btn-menus').classList.add('active-nav');
@@ -390,6 +405,23 @@
         } catch (err) { console.error('Error cargando alimentos:', err); }
     }
 
+    async function cargarHistorialAlmacen() {
+        try {
+            const response = await apiFetch('/api/alimentos/historial?limit=100');
+            const historial = await response.json();
+            document.getElementById('tabla-historial-almacen').innerHTML = historial.map(item => `
+                <tr>
+                    <td>${escapeHtml(item.fecha ? new Date(item.fecha).toLocaleString() : '-')}</td>
+                    <td>${escapeHtml(item.alimento_nombre)}</td>
+                    <td>${escapeHtml(item.cantidad)}</td>
+                    <td>${escapeHtml(item.accion)}</td>
+                    <td>${escapeHtml(item.usuario_nombre)}</td>
+                    <td>${escapeHtml(item.usuario_rol)}</td>
+                </tr>
+            `).join('') || '<tr><td colspan="6">No hay movimientos registrados.</td></tr>';
+        } catch (err) { console.error('Error cargando historial del almacén:', err); }
+    }
+
     async function crearMenu() {
         const data = {
             nombre: document.getElementById('menu-nombre').value,
@@ -433,18 +465,22 @@
             );
 
             document.getElementById('tabla-asignaciones-menu').innerHTML = activas.map(paciente => {
-                const menusPaciente = menus.filter(menu => menu.dieta === paciente.dieta_asignada);
+                const dietaPaciente = normalizarDieta(paciente.dieta_asignada);
+                const menusPaciente = dietaPaciente
+                    ? menus.filter(menu => normalizarDieta(menu.dieta) === dietaPaciente)
+                    : [];
                 const filasComida = catalogoNutricional.comidas.map(comida => {
                     const actual = asignacionPorPacienteComida.get(`${paciente.id}-${comida}`);
                     const opciones = menusPaciente.map(menu =>
                         `<option value="${menu.id}" ${actual?.menuId === menu.id ? 'selected' : ''}>${escapeHtml(menu.nombre)}</option>`
                     ).join('');
+                    const placeholder = menusPaciente.length ? 'Seleccionar menú' : 'No hay menús activos para esta dieta';
                     return `<tr>
                         <td>${escapeHtml(paciente.nombre)} ${escapeHtml(paciente.apellido)}</td>
                         <td>${escapeHtml(paciente.patologia)}</td>
                         <td>${escapeHtml(paciente.dieta_asignada)}</td>
                         <td>${paciente.tiene_acompanante ? '1 adicional' : 'No'}</td>
-                        <td><select id="menu-${paciente.id}-${comida}"><option value="">Seleccionar menú</option>${opciones}</select></td>
+                        <td><select id="menu-${paciente.id}-${comida}"><option value="">${escapeHtml(placeholder)}</option>${opciones}</select></td>
                         <td>${escapeHtml(comida)}</td>
                         <td><button onclick="asignarMenu(${paciente.id}, '${escapeHtml(comida)}')">Guardar</button></td>
                     </tr>`;

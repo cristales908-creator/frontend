@@ -1,0 +1,21 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "Interfaz web estática en HTML, CSS y JavaScript: inicio de sesión, registro y panel hospitalario.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cristales908-creator/frontend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/cristales908-creator/frontend/issues"
+  },
+  "homepage": "https://github.com/cristales908-creator/frontend#readme"
+}
