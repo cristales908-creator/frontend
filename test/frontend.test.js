@@ -25,5 +25,17 @@ test('frontend contains the backend endpoints used by its forms', () => {
     assert.match(login, /\/api\/auth\/login/);
     assert.match(registration, /\/api\/auth\/registrar/);
     assert.match(dashboard, /\/api\/alimentos\/historial/);
+    assert.match(dashboard, /\/api\/alimentos\/consumo/);
+    assert.match(dashboard, /\/api\/alimentos\/\$\{alimentoId\}\/stock-minimo/);
+    assert.match(dashboard, /actualizarAlertaStock/);
+    assert.match(dashboard, /setInterval\(cargarAlimentos, 60_000\)/);
+    assert.match(dashboard, /Registrar ingrediente utilizado/);
+    assert.match(dashboard, /alim-retirar-unidad/);
+    assert.match(dashboard, /unidadRetiro/);
+    assert.match(dashboard, /Pacientes destinatarios/);
+    assert.match(dashboard, /pacientesPorMenuComida/);
+    assert.match(dashboard, /pac-habitacion/);
+    assert.match(dashboard, /imprimirMenuDelDia/);
+    assert.match(dashboard, /paciente\.habitacion/);
     assert.match(dashboard, /\/api\/menus\/asignaciones/);
 });

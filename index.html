@@ -23,12 +23,33 @@
         nav button.active-nav { background-color: #0056b3; }
         .card { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e2e6ea; }
         .solo-admin { display: block; }
+        @media print {
+            @page { size: landscape; margin: 12mm; }
+            body.printing-menu * { visibility: hidden; }
+            body.printing-menu #reporte-cocina,
+            body.printing-menu #reporte-cocina * { visibility: visible; }
+            body.printing-menu #reporte-cocina {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                border: 0;
+                box-shadow: none;
+            }
+            #reporte-cocina table { font-size: 10pt; }
+            #reporte-cocina th, #reporte-cocina td { padding: 6px; }
+            #reporte-cocina th { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            #reporte-cocina tr { break-inside: avoid; }
+            .destinatarios-lista { margin: 0; padding-left: 18px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1 id="titulo-bienvenida">🏥 Panel de Gestión Hospitalaria</h1>
+    <div id="alerta-stock" class="card" role="alert" style="display: none; border-color: #dc3545; color: #842029; background: #f8d7da;"></div>
     
     <nav>
         <button onclick="cambiarPestana('pacientes')" id="btn-pacientes" class="active-nav">Pacientes</button>
@@ -49,6 +70,7 @@
                 <div class="form-group"><label>DNI:</label><input type="text" id="pac-dni"></div>
                 <div class="form-group"><label>Nombre:</label><input type="text" id="pac-nombre"></div>
                 <div class="form-group"><label>Apellido:</label><input type="text" id="pac-apellido"></div>
+                <div class="form-group"><label>Habitación:</label><input type="text" id="pac-habitacion" required maxlength="30"></div>
                 <div class="form-group"><label>Patología:</label><select id="pac-patologia"></select></div>
                 <div class="form-group"><label>Dieta indicada por Nutrición:</label><select id="pac-dieta"></select></div>
                 <div class="form-group">
@@ -65,6 +87,7 @@
                 <tr>
                     <th>DNI</th>
                     <th>Nombre y Apellido</th>
+                    <th>Habitación</th>
                     <th>Patología</th>
                     <th>Dieta</th>
                     <th>Acompañante</th>
@@ -104,10 +127,30 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group"><label>Nombre del Alimento:</label><input type="text" id="alim-nombre"></div>
                 <div class="form-group"><label>Cantidad Actual:</label><input type="number" id="alim-cantidad" step="0.1"></div>
+                <div class="form-group"><label>Stock Mínimo para Alerta:</label><input type="number" id="alim-stock-minimo" min="0" step="0.1" value="0"></div>
                 <div class="form-group"><label>Unidad de Medida:</label><input type="text" id="alim-unidad" placeholder="kg, litros..."></div>
                 <div class="form-group"><label>Fecha de Vencimiento:</label><input type="date" id="alim-vencimiento"></div>
             </div>
             <button onclick="registrarAlimento()">Agregar al Almacén</button>
+        </div>
+
+        <div class="card" id="card-retirar-alimento" style="display: none;">
+            <h3>Registrar ingrediente utilizado</h3>
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                <div class="form-group">
+                    <label>Ingrediente:</label>
+                    <select id="alim-retirar-id" onchange="actualizarUnidadesRetiro()"></select>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad utilizada:</label>
+                    <input type="number" id="alim-retirar-cantidad" min="0.001" step="0.001">
+                </div>
+                <div class="form-group">
+                    <label>Unidad:</label>
+                    <select id="alim-retirar-unidad"></select>
+                </div>
+                <button onclick="registrarUsoAlimento()">Registrar uso</button>
+            </div>
         </div>
 
         <h3>Stock Disponible</h3>
@@ -116,6 +159,8 @@
                 <tr>
                     <th>Alimento</th>
                     <th>Cantidad Actual</th>
+                    <th>Stock Mínimo</th>
+                    <th>Estado</th>
                     <th>Unidad</th>
                     <th>Vencimiento</th>
                 </tr>
@@ -124,7 +169,7 @@
         </table>
 
         <div id="card-historial-almacen">
-            <h3>Historial de ingresos</h3>
+            <h3>Historial de movimientos</h3>
             <table>
                 <thead><tr><th>Fecha</th><th>Alimento</th><th>Cantidad</th><th>Acción</th><th>Responsable</th><th>Rol</th></tr></thead>
                 <tbody id="tabla-historial-almacen"></tbody>
@@ -154,16 +199,21 @@
             </div>
             <p id="nota-catalogo-menus"></p>
             <table>
-                <thead><tr><th>Paciente</th><th>Patología</th><th>Dieta</th><th>Acompañante</th><th>Menú</th><th>Comida</th><th>Acción</th></tr></thead>
+                <thead><tr><th>Paciente</th><th>Habitación</th><th>Patología</th><th>Dieta</th><th>Acompañante</th><th>Menú</th><th>Comida</th><th>Acción</th></tr></thead>
                 <tbody id="tabla-asignaciones-menu"></tbody>
             </table>
         </div>
 
-        <h3>Raciones para cocina</h3>
-        <table>
-            <thead><tr><th>Comida</th><th>Dieta</th><th>Menú</th><th>Composición</th><th>Pacientes</th><th>Acompañantes</th><th>Total a preparar</th></tr></thead>
-            <tbody id="tabla-resumen-menus"></tbody>
-        </table>
+        <button type="button" onclick="imprimirMenuDelDia()">Imprimir menú del día</button>
+        <section id="reporte-cocina">
+            <h2>Menú del día</h2>
+            <p><strong>Fecha de servicio:</strong> <span id="reporte-fecha-menu"></span></p>
+            <h3>Raciones para cocina</h3>
+            <table>
+                <thead><tr><th>Comida</th><th>Dieta</th><th>Menú</th><th>Pacientes destinatarios</th><th>Composición</th><th>Pacientes</th><th>Acompañantes</th><th>Total a preparar</th></tr></thead>
+                <tbody id="tabla-resumen-menus"></tbody>
+            </table>
+        </section>
     </div>
 
 </div>
@@ -175,6 +225,8 @@
     let rolUsuario = localStorage.getItem('usuarioRol') || 'Invitado';
     let nombreUsuario = localStorage.getItem('usuarioNombre') || 'Personal';
     let catalogoNutricional = { patologias: [], dietas: [], comidas: [] };
+    let alimentosDisponibles = [];
+    const alertasStockNotificadas = new Set();
 
     async function apiFetch(url, options = {}) {
         const headers = new Headers(options.headers || {});
@@ -194,6 +246,15 @@
     function escapeHtml(value) {
         const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
         return String(value ?? '').replace(/[&<>"']/g, character => entities[character]);
+    }
+
+    function normalizarUnidadMedida(unidad) {
+        const normalizada = String(unidad ?? '').trim().toLocaleLowerCase('es');
+        const unidadesMasa = {
+            g: 'g', gr: 'g', gramo: 'g', gramos: 'g',
+            kg: 'kg', kilo: 'kg', kilos: 'kg', kilogramo: 'kg', kilogramos: 'kg'
+        };
+        return unidadesMasa[normalizada] || normalizada;
     }
 
     function fechaLocalActual() {
@@ -229,13 +290,17 @@
     window.onload = function() {
         document.getElementById('titulo-bienvenida').innerText = `🏥 Panel de ${nombreUsuario} (${rolUsuario})`;
         document.getElementById('menus-fecha').value = fechaLocalActual();
+        window.addEventListener('afterprint', () => document.body.classList.remove('printing-menu'));
 
         // Restringir vistas si el rol es Cocinera
         if (rolUsuario === 'Cocinera' || rolUsuario === 'cocinera') {
             document.getElementById('card-nuevo-paciente').style.display = 'none';
             document.getElementById('card-nuevo-alimento').style.display = 'none';
             document.getElementById('card-asignaciones-menu').style.display = 'none';
-            document.getElementById('card-historial-almacen').style.display = 'none';
+            document.getElementById('card-retirar-alimento').style.display = 'block';
+        }
+        if (rolUsuario !== 'Cocinera' && rolUsuario !== 'cocinera') {
+            document.getElementById('card-retirar-alimento').style.display = 'none';
         }
         if (rolUsuario !== 'Nutricionista') document.getElementById('card-nuevo-menu').style.display = 'none';
 
@@ -243,6 +308,7 @@
         cargarPacientes();
         cargarHistorial();
         cargarAlimentos();
+        if (rolUsuario === 'Enfermera') window.setInterval(cargarAlimentos, 60_000);
     };
 
     function cambiarPestana(pestana) {
@@ -267,7 +333,7 @@
             document.getElementById('seccion-almacen').classList.add('active-section');
             document.getElementById('btn-almacen').classList.add('active-nav');
             cargarAlimentos();
-            if (rolUsuario !== 'Cocinera' && rolUsuario !== 'cocinera') cargarHistorialAlmacen();
+            cargarHistorialAlmacen();
         } else if (pestana === 'menus') {
             document.getElementById('seccion-menus').classList.add('active-section');
             document.getElementById('btn-menus').classList.add('active-nav');
@@ -295,6 +361,7 @@
                     <tr>
                         <td>${escapeHtml(p.dni)}</td>
                         <td>${escapeHtml(p.nombre)} ${escapeHtml(p.apellido)}</td>
+                        <td>${escapeHtml(p.habitacion || '-')}</td>
                         <td>${escapeHtml(p.patologia || '-')}</td>
                         <td>${escapeHtml(p.dieta_asignada || '-')}</td>
                         <td>${p.tiene_acompanante ? 'Sí (Acompañado)' : 'No'}</td>
@@ -316,11 +383,16 @@
             dni: document.getElementById('pac-dni').value,
             nombre: document.getElementById('pac-nombre').value,
             apellido: document.getElementById('pac-apellido').value,
+            habitacion: document.getElementById('pac-habitacion').value,
             patologia: document.getElementById('pac-patologia').value,
             dieta_asignada: document.getElementById('pac-dieta').value,
             estado_internacion: 'Internado',
             tiene_acompanante: document.getElementById('pac-acompanante').value === 'true'
         };
+        if (!data.habitacion.trim()) {
+            alert('Indique el número de habitación del paciente.');
+            return;
+        }
 
         const res = await apiFetch('/api/pacientes', {
             method: 'POST',
@@ -330,9 +402,11 @@
 
         if (res.ok) {
             alert('Paciente registrado exitosamente.');
+            document.getElementById('pac-habitacion').value = '';
             cargarPacientes();
         } else {
-            alert('Error al registrar paciente.');
+            const result = await res.json().catch(() => ({}));
+            alert(result.error || 'Error al registrar paciente.');
         }
     }
 
@@ -390,19 +464,123 @@
         try {
             const res = await apiFetch('/api/alimentos');
             const alimentos = await res.json();
+            if (!res.ok) throw new Error(alimentos.error || 'No se pudo obtener el stock del almacén.');
+            alimentosDisponibles = alimentos;
+            actualizarAlertaStock(alimentos);
             const tbody = document.getElementById('tabla-alimentos');
             tbody.innerHTML = '';
+            const selector = document.getElementById('alim-retirar-id');
+            if (selector) {
+                selector.innerHTML = '<option value="">Seleccionar ingrediente</option>' + alimentos.map(a =>
+                    `<option value="${escapeHtml(a.id)}">${escapeHtml(a.nombre)} — ${escapeHtml(a.cantidad_actual)} ${escapeHtml(a.unidad_medida)}</option>`
+                ).join('');
+                actualizarUnidadesRetiro();
+            }
             alimentos.forEach(a => {
+                const cantidad = Number(a.cantidad_actual);
+                const minimo = Number(a.stock_minimo || 0);
+                const agotado = cantidad <= 0;
+                const stockBajo = !agotado && minimo > 0 && cantidad <= minimo;
+                const estado = agotado ? 'Agotado' : stockBajo ? 'Stock bajo' : 'Disponible';
+                const controlMinimo = rolUsuario === 'Enfermera' || rolUsuario === 'Nutricionista'
+                    ? `<input type="number" id="stock-minimo-${escapeHtml(a.id)}" min="0" step="0.1" value="${escapeHtml(minimo)}" aria-label="Stock mínimo de ${escapeHtml(a.nombre)}">
+                       <button onclick="guardarStockMinimo(${Number(a.id)})">Guardar</button>`
+                    : escapeHtml(minimo);
                 tbody.innerHTML += `
                     <tr>
                         <td>${escapeHtml(a.nombre)}</td>
                         <td>${escapeHtml(a.cantidad_actual)}</td>
+                        <td>${controlMinimo}</td>
+                        <td>${estado}</td>
                         <td>${escapeHtml(a.unidad_medida)}</td>
                         <td>${escapeHtml(a.fecha_vencimiento || '-')}</td>
                     </tr>
                 `;
             });
-        } catch (err) { console.error('Error cargando alimentos:', err); }
+            if (!alimentos.length) {
+                tbody.innerHTML = '<tr><td colspan="6">No hay alimentos registrados.</td></tr>';
+            }
+        } catch (err) {
+            console.error('Error cargando alimentos:', err);
+            document.getElementById('tabla-alimentos').innerHTML =
+                '<tr><td colspan="6">No se pudo cargar el stock. Intente nuevamente.</td></tr>';
+            if (rolUsuario === 'Enfermera') {
+                const banner = document.getElementById('alerta-stock');
+                banner.textContent = err.message || 'No se pudo consultar el almacén.';
+                banner.style.display = 'block';
+            }
+        }
+    }
+
+    function actualizarAlertaStock(alimentos) {
+        const alertas = alimentos.filter(alimento => {
+            const cantidad = Number(alimento.cantidad_actual);
+            const minimo = Number(alimento.stock_minimo || 0);
+            return cantidad <= 0 || (minimo > 0 && cantidad <= minimo);
+        });
+        const banner = document.getElementById('alerta-stock');
+        if (rolUsuario !== 'Enfermera' || !alertas.length) {
+            banner.style.display = 'none';
+            if (!alertas.length) alertasStockNotificadas.clear();
+            return;
+        }
+
+        const detalle = alertas.map(alimento => {
+            const agotado = Number(alimento.cantidad_actual) <= 0;
+            return `<li><strong>${escapeHtml(alimento.nombre)}</strong>: ${agotado ? 'agotado' : `quedan ${escapeHtml(alimento.cantidad_actual)} ${escapeHtml(alimento.unidad_medida)} (mínimo: ${escapeHtml(alimento.stock_minimo)} ${escapeHtml(alimento.unidad_medida)})`}</li>`;
+        }).join('');
+        banner.innerHTML = `<strong>Alerta de almacén: ${alertas.length} ingrediente(s) requieren reposición.</strong><ul>${detalle}</ul>`;
+        banner.style.display = 'block';
+
+        const idsAlertas = new Set(alertas.map(alimento => String(alimento.id)));
+        for (const id of alertasStockNotificadas) {
+            if (!idsAlertas.has(id)) alertasStockNotificadas.delete(id);
+        }
+        const nuevasAlertas = alertas.filter(alimento => !alertasStockNotificadas.has(String(alimento.id)));
+        if (nuevasAlertas.length) {
+            nuevasAlertas.forEach(alimento => alertasStockNotificadas.add(String(alimento.id)));
+            alert(`Alerta de almacén: ${nuevasAlertas.map(alimento =>
+                Number(alimento.cantidad_actual) <= 0
+                    ? `${alimento.nombre} (agotado)`
+                    : `${alimento.nombre} (quedan ${alimento.cantidad_actual} ${alimento.unidad_medida})`
+            ).join(', ')}`);
+        }
+    }
+
+    async function guardarStockMinimo(alimentoId) {
+        const input = document.getElementById(`stock-minimo-${alimentoId}`);
+        const stock_minimo = Number(input.value);
+        if (!Number.isFinite(stock_minimo) || stock_minimo < 0) {
+            alert('El stock mínimo debe ser cero o un valor positivo.');
+            return;
+        }
+
+        const response = await apiFetch(`/api/alimentos/${alimentoId}/stock-minimo`, {
+            method: 'PATCH',
+            body: JSON.stringify({ stock_minimo })
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            alert(result.error || 'No se pudo guardar el stock mínimo.');
+            return;
+        }
+
+        await cargarAlimentos();
+    }
+
+    function actualizarUnidadesRetiro() {
+        const alimentoId = Number(document.getElementById('alim-retirar-id').value);
+        const alimento = alimentosDisponibles.find(item => item.id === alimentoId);
+        const selectorUnidad = document.getElementById('alim-retirar-unidad');
+        if (!selectorUnidad) return;
+
+        const unidadStock = normalizarUnidadMedida(alimento?.unidad_medida);
+        const opciones = unidadStock === 'g' || unidadStock === 'kg'
+            ? ['g', 'kg']
+            : alimento?.unidad_medida ? [alimento.unidad_medida] : [];
+        selectorUnidad.innerHTML = opciones.map(unidad =>
+            `<option value="${escapeHtml(unidad)}">${escapeHtml(unidad)}</option>`
+        ).join('');
     }
 
     async function cargarHistorialAlmacen() {
@@ -447,7 +625,7 @@
 
     async function cargarMenusDia() {
         const fecha = document.getElementById('menus-fecha').value;
-        if (!fecha) return;
+        if (!fecha) return false;
 
         try {
             const [pacientesResponse, menusResponse, asignacionesResponse, resumenResponse] = await Promise.all([
@@ -463,6 +641,19 @@
             const asignacionPorPacienteComida = new Map(
                 asignaciones.map(asignacion => [`${asignacion.pacienteId}-${asignacion.comida}`, asignacion])
             );
+            const pacientesPorMenuComida = new Map();
+            asignaciones.forEach(asignacion => {
+                const clave = `${asignacion.menuId}-${asignacion.comida}`;
+                const pacientesAsignados = pacientesPorMenuComida.get(clave) || [];
+                if (asignacion.paciente) {
+                    pacientesAsignados.push({
+                        nombre: `${asignacion.paciente.nombre} ${asignacion.paciente.apellido}`,
+                        habitacion: asignacion.paciente.habitacion,
+                        tieneAcompanante: asignacion.paciente.tiene_acompanante
+                    });
+                }
+                pacientesPorMenuComida.set(clave, pacientesAsignados);
+            });
 
             document.getElementById('tabla-asignaciones-menu').innerHTML = activas.map(paciente => {
                 const dietaPaciente = normalizarDieta(paciente.dieta_asignada);
@@ -477,6 +668,7 @@
                     const placeholder = menusPaciente.length ? 'Seleccionar menú' : 'No hay menús activos para esta dieta';
                     return `<tr>
                         <td>${escapeHtml(paciente.nombre)} ${escapeHtml(paciente.apellido)}</td>
+                        <td>${escapeHtml(paciente.habitacion || '-')}</td>
                         <td>${escapeHtml(paciente.patologia)}</td>
                         <td>${escapeHtml(paciente.dieta_asignada)}</td>
                         <td>${paciente.tiene_acompanante ? '1 adicional' : 'No'}</td>
@@ -486,22 +678,46 @@
                     </tr>`;
                 }).join('');
                 return filasComida;
-            }).join('') || '<tr><td colspan="7">No hay pacientes internados para planificar.</td></tr>';
+            }).join('') || '<tr><td colspan="8">No hay pacientes internados para planificar.</td></tr>';
 
-            document.getElementById('tabla-resumen-menus').innerHTML = resumen.map(item => `
-                <tr>
+            document.getElementById('tabla-resumen-menus').innerHTML = resumen.map(item => {
+                const destinatarios = pacientesPorMenuComida.get(`${item.menuId}-${item.comida}`) || [];
+                const nombres = destinatarios.map(paciente =>
+                    `<li>${escapeHtml(paciente.nombre)} — Hab. ${escapeHtml(paciente.habitacion || 'Sin asignar')}${paciente.tieneAcompanante ? ' (con acompañante)' : ''}</li>`
+                ).join('') || 'Sin pacientes asignados';
+                return `<tr>
                     <td>${escapeHtml(item.comida)}</td>
                     <td>${escapeHtml(item.dieta)}</td>
                     <td>${escapeHtml(item.nombre)}</td>
+                    <td>${destinatarios.length ? `<ul class="destinatarios-lista">${nombres}</ul>` : nombres}</td>
                     <td>${escapeHtml(item.descripcion)}</td>
                     <td>${escapeHtml(item.porciones_paciente)}</td>
                     <td>${escapeHtml(item.porciones_acompanante)}</td>
                     <td><strong>${escapeHtml(item.total_porciones)}</strong></td>
-                </tr>
-            `).join('') || '<tr><td colspan="7">Todavía no hay menús asignados para esta fecha.</td></tr>';
+                </tr>`;
+            }).join('') || '<tr><td colspan="8">Todavía no hay menús asignados para esta fecha.</td></tr>';
+            return true;
         } catch (error) {
             console.error('Error cargando planificación de menús:', error);
+            return false;
         }
+    }
+
+    async function imprimirMenuDelDia() {
+        const fecha = document.getElementById('menus-fecha').value;
+        if (!fecha) {
+            alert('Seleccione la fecha del menú que desea imprimir.');
+            return;
+        }
+        if (!await cargarMenusDia()) {
+            alert('No se pudo actualizar la planificación. Intente imprimir nuevamente.');
+            return;
+        }
+
+        document.getElementById('reporte-fecha-menu').textContent =
+            new Date(`${fecha}T00:00:00`).toLocaleDateString('es-AR');
+        document.body.classList.add('printing-menu');
+        window.print();
     }
 
     async function asignarMenu(pacienteId, comida) {
@@ -525,6 +741,34 @@
         await cargarMenusDia();
     }
 
+    async function registrarUsoAlimento() {
+        const alimentoId = document.getElementById('alim-retirar-id').value;
+        const cantidad = parseFloat(document.getElementById('alim-retirar-cantidad').value);
+        const unidadRetiro = document.getElementById('alim-retirar-unidad').value;
+
+        if (!alimentoId || !unidadRetiro || !Number.isFinite(cantidad) || cantidad <= 0) {
+            alert('Seleccione un ingrediente, una unidad e indique una cantidad positiva.');
+            return;
+        }
+
+        const response = await apiFetch('/api/alimentos/consumo', {
+            method: 'POST',
+            body: JSON.stringify({ alimentoId: Number(alimentoId), cantidad, unidadRetiro })
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            alert(result.error || 'No se pudo registrar el uso del ingrediente.');
+            return;
+        }
+
+        document.getElementById('alim-retirar-cantidad').value = '';
+        document.getElementById('alim-retirar-id').value = '';
+        actualizarUnidadesRetiro();
+        alert(result.mensaje);
+        await Promise.all([cargarAlimentos(), cargarHistorialAlmacen()]);
+    }
+
     async function registrarAlimento() {
         if (rolUsuario === 'Cocinera' || rolUsuario === 'cocinera') {
             alert('Solo la Nutricionista o Enfermera pueden agregar nuevo stock.');
@@ -534,6 +778,7 @@
         const data = {
             nombre: document.getElementById('alim-nombre').value,
             cantidad_actual: parseFloat(document.getElementById('alim-cantidad').value),
+            stock_minimo: parseFloat(document.getElementById('alim-stock-minimo').value || '0'),
             unidad_medida: document.getElementById('alim-unidad').value,
             fecha_ingreso: new Date().toISOString().split('T')[0],
             fecha_vencimiento: document.getElementById('alim-vencimiento').value,
@@ -547,6 +792,7 @@
 
         if (res.ok) {
             alert('Alimento registrado en el stock.');
+            document.getElementById('alim-stock-minimo').value = '0';
             cargarAlimentos();
         } else {
             alert('Error al registrar alimento.');
