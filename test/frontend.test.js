@@ -39,3 +39,12 @@ test('frontend contains the backend endpoints used by its forms', () => {
     assert.match(dashboard, /paciente\.habitacion/);
     assert.match(dashboard, /\/api\/menus\/asignaciones/);
 });
+
+test('Vercel forwards API requests to the Render backend', () => {
+    const vercelConfig = JSON.parse(fs.readFileSync(path.join(frontendDirectory, 'vercel.json'), 'utf8'));
+
+    assert.deepEqual(vercelConfig.rewrites, [{
+        source: '/api/:path*',
+        destination: 'https://backend-5uw8.onrender.com/api/:path*'
+    }]);
+});

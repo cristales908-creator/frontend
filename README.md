@@ -8,6 +8,10 @@ En la estructura de desarrollo compartida, el backend sirve estas páginas en `h
 
 ## Repositorio y despliegue independiente
 
-Este frontend usa rutas relativas `/api/...`, por lo que funciona cuando frontend y API comparten origen o cuando un proxy redirige `/api` al backend. Si publicas el frontend en GitHub Pages u otro dominio independiente, configura un proxy o una URL base para la API y permite ese origen en CORS antes de desplegar.
+Este frontend usa rutas relativas `/api/...`. El archivo `vercel.json` configura Vercel para reenviar esas rutas al backend de Render, incluyendo login, registro y las operaciones del panel.
+
+Para desplegarlo, conecta el repositorio `frontend` a Vercel y usa la carpeta raíz del repositorio como **Root Directory**. Después de subir `vercel.json`, crea un nuevo despliegue. No hace falta configurar CORS para estas llamadas, ya que el navegador se comunica con Vercel y Vercel las reenvía al backend.
+
+Si cambia el dominio público del backend, actualiza el destino `https://backend-5uw8.onrender.com/api/:path*` en `vercel.json` y vuelve a desplegar.
 
 No pongas `STAFF_REGISTRATION_KEY`, contraseñas ni secretos del backend en este repositorio.
