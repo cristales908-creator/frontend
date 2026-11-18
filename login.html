@@ -230,6 +230,10 @@
     </div>
 
 <script>
+    const API_BASE = window.location.hostname.endsWith('.onrender.com')
+        ? 'https://backend-5uw8.onrender.com'
+        : '';
+
     async function iniciarSesion() {
         const dni = document.getElementById('login-dni').value;
         const contrasena = document.getElementById('login-contrasena').value;
@@ -240,7 +244,7 @@
         }
 
         try {
-            const res = await fetch('/api/auth/login', {
+            const res = await fetch(`${API_BASE}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ dni, contrasena })

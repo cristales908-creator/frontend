@@ -48,3 +48,18 @@ test('Vercel forwards API requests to the Render backend', () => {
         destination: 'https://backend-5uw8.onrender.com/api/:path*'
     }]);
 });
+
+test('Render-hosted pages send API requests to the Render backend', () => {
+    for (const filename of ['login.html', 'registro.html', 'index.html']) {
+        const html = fs.readFileSync(path.join(frontendDirectory, filename), 'utf8');
+        assert.match(html, /window\.location\.hostname\.endsWith\('\.onrender\.com'\)/);
+        assert.match(html, /https:\/\/backend-5uw8\.onrender\.com/);
+    }
+
+    const login = fs.readFileSync(path.join(frontendDirectory, 'login.html'), 'utf8');
+    const registration = fs.readFileSync(path.join(frontendDirectory, 'registro.html'), 'utf8');
+    const dashboard = fs.readFileSync(path.join(frontendDirectory, 'index.html'), 'utf8');
+    assert.match(login, /fetch\(`\$\{API_BASE\}\/api\/auth\/login`/);
+    assert.match(registration, /fetch\(`\$\{API_BASE\}\/api\/auth\/registrar`/);
+    assert.match(dashboard, /fetch\(`\$\{API_BASE\}\$\{url\}`/);
+});

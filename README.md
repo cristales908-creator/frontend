@@ -14,4 +14,6 @@ Para desplegarlo, conecta el repositorio `frontend` a Vercel y usa la carpeta ra
 
 Si cambia el dominio público del backend, actualiza el destino `https://backend-5uw8.onrender.com/api/:path*` en `vercel.json` y vuelve a desplegar.
 
+También se puede publicar como **Static Site** en Render desde el repositorio `frontend`: usa `.` como **Publish Directory** y deja vacío el comando de compilación. En páginas alojadas en `*.onrender.com`, el navegador llama directamente a `https://backend-5uw8.onrender.com`; el backend ya permite solicitudes CORS. Si cambia el dominio público del backend, actualiza `API_BASE` en `login.html`, `registro.html` e `index.html`.
+
 No pongas `STAFF_REGISTRATION_KEY`, contraseñas ni secretos del backend en este repositorio.
